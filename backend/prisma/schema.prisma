@@ -12,7 +12,7 @@ datasource db {
 
 model Address {
   addressId                 String                      @id @default(uuid()) @db.Uuid
-  address                   String
+  address                   String                      @unique
   createdAt                 DateTime                    @default(now()) @db.Timestamptz(6)
   PolygonIdCredentialIssued PolygonIdCredentialIssued[]
 }
