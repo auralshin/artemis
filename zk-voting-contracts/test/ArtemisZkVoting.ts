@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
 import { Contract, Signer } from "ethers";
 import { expect } from "chai";
-import { ArtemisZKVoting, Groth16Verifier } from "../typechain-types";
+import { ArtemisZKVoting } from "../typechain-types";
 
 describe("ArtemisZKVoting", () => {
   let accounts: Signer[];

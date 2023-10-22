@@ -1,9 +1,11 @@
-import { formatEther, parseEther } from "viem";
-import hre from "hardhat";
+import { ethers } from "hardhat";
 
 async function main() {
+  const [deployer] = await ethers.getSigners();
+  const lock = await ethers.deployContract("ArtemisZkVoting", [deployer]);
 
-  const lock = await hre.viem.deployContract("ArtemisZkVoting", ["address"]);
+  await lock.waitForDeployment();
+
 }
 
 // We recommend this pattern to be able to use async/await everywhere
