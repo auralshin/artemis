@@ -5,55 +5,48 @@ import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./Verifier.sol";
 
-contract ArtemisZKVoting is Ownable, Groth16Verifier {
+contract ArtemisDAOVoting is Ownable, Groth16Verifier {
     Groth16Verifier public verifier;
 
-    struct Campaign {
+    struct Proposal {
         bytes32 merkleRoot;
-        string campaignName;
-        mapping(bytes32 => uint256) votesReceived;
-        mapping(bytes32 => bool) voted;
-        mapping(bytes32 => bool) validCandidates;
+        string proposalDescription;
+        mapping(bool => uint256) votes; // true: support, false: against
+        mapping(bytes32 => bool) voted; // leaf: hasVoted
     }
 
-    mapping(uint256 => Campaign) public campaigns;
+    mapping(uint256 => Proposal) public proposals;
 
-    // Event emitted when a vote is received
-    event CampaignAdded(uint256 campaignId, string campaignName);
-    event VoteReceived(uint256 campaignId, bytes32 candidate);
+    // Events
+    event ProposalAdded(uint256 proposalId, string description);
+    event VoteReceived(uint256 proposalId, bool support);
 
     // Custom errors
-    error InvalidCandidate();
+    error InvalidVote();
     error AlreadyVoted();
     error InvalidZkSnarkProof();
     error InvalidMerkleProof();
-    error InvalidCampaign();
+    error InvalidProposal();
 
     constructor(address initialOwner) Ownable(initialOwner) {}
 
-    function addCampaign(
-        uint256 campaignId,
-        string memory _campaignName,
-        bytes32[] memory candidateNames,
+    function addProposal(
+        uint256 proposalId,
+        string memory description,
         bytes32 _merkleRoot
-    ) external {
+    ) external onlyOwner {
         require(
-            campaigns[campaignId].merkleRoot == 0,
-            "Campaign already exists."
-        ); // Ensure unique campaign IDs
-
-        Campaign storage campaign = campaigns[campaignId];
-        campaign.merkleRoot = _merkleRoot;
-        campaign.campaignName = _campaignName;
-        for (uint i = 0; i < candidateNames.length; i++) {
-            campaign.validCandidates[candidateNames[i]] = true;
-        }
-        emit CampaignAdded(campaignId, _campaignName);
+            proposals[proposalId].merkleRoot == 0,
+            "Proposal already exists."
+        );
+        proposals[proposalId].merkleRoot = _merkleRoot;
+        proposals[proposalId].proposalDescription = description;
+        emit ProposalAdded(proposalId, description);
     }
 
-    function voteForCandidate(
-        uint256 campaignId,
-        bytes32 candidate,
+    function voteForProposal(
+        uint256 proposalId,
+        bool support,
         uint[2] calldata _pA,
         uint[2][2] calldata _pB,
         uint[2] calldata _pC,
@@ -61,60 +54,41 @@ contract ArtemisZKVoting is Ownable, Groth16Verifier {
         bytes32[] calldata merkleProof,
         bytes32 leaf
     ) external {
-        Campaign storage campaign = campaigns[campaignId];
-        if (campaign.merkleRoot == 0) {
-            revert InvalidCampaign();
+        Proposal storage proposal = proposals[proposalId];
+        if (proposal.merkleRoot == 0) {
+            revert InvalidProposal();
         }
-        if (!validCandidate(campaign, candidate)) {
-            revert InvalidCandidate();
-        }
-        if (campaign.voted[leaf]) {
+        if (proposal.voted[leaf]) {
             revert AlreadyVoted();
         }
-
-        // Verify zk-SNARK proof
         if (!verifier.verifyProof(_pA, _pB, _pC, _pubSignals)) {
             revert InvalidZkSnarkProof();
         }
-
-        // Verify Merkle proof
-        if (!verifyMerkleProof(campaign, merkleProof, leaf)) {
+        if (!verifyMerkleProof(proposal, merkleProof, leaf)) {
             revert InvalidMerkleProof();
         }
-
-        campaign.votesReceived[candidate] += 1;
-        campaign.voted[leaf] = true;
-
-        emit VoteReceived(campaignId, candidate);
+        proposal.votes[support] += 1;
+        proposal.voted[leaf] = true;
+        emit VoteReceived(proposalId, support);
     }
 
-    function totalVotesFor(
-        uint256 campaignId,
-        bytes32 candidate
+    function totalVotesForProposal(
+        uint256 proposalId,
+        bool support
     ) external view returns (uint256) {
-        Campaign storage campaign = campaigns[campaignId];
-        if (campaign.merkleRoot == 0) {
-            revert InvalidCampaign();
+        Proposal storage proposal = proposals[proposalId];
+        if (proposal.merkleRoot == 0) {
+            revert InvalidProposal();
         }
-        if (!validCandidate(campaign, candidate)) {
-            revert InvalidCandidate();
-        }
-        return campaign.votesReceived[candidate];
+        return proposal.votes[support];
     }
 
     function verifyMerkleProof(
-        Campaign storage campaign,
+        Proposal storage proposal,
         bytes32[] memory proof,
         bytes32 leaf
     ) internal view returns (bool) {
-        return MerkleProof.verify(proof, campaign.merkleRoot, leaf);
-    }
-
-    function validCandidate(
-        Campaign storage campaign,
-        bytes32 candidate
-    ) internal view returns (bool) {
-        return campaign.validCandidates[candidate];
+        return MerkleProof.verify(proof, proposal.merkleRoot, leaf);
     }
 
     function transferContractOwnership(address newOwner) external onlyOwner {
