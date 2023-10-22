@@ -12,6 +12,7 @@
     "@types/cors": "^2.8.15",
     "@types/express": "^4.17.20",
     "@types/node": "^20.8.7",
+    "@types/snarkjs": "^0.7.6",
     "concurrently": "^8.2.2",
     "nodemon": "^3.0.1",
     "prisma": "^5.4.2",
@@ -28,8 +29,10 @@
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
+    "ethers": "^6.8.0",
     "express": "^4.18.2",
     "joi": "^17.11.0",
+    "snarkjs": "^0.7.1",
     "uuidv4": "^6.2.13"
   }
 }
