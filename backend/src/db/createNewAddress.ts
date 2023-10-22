@@ -5,7 +5,7 @@ export const createNewAddress = async (address: string) => {
   try {
     const result = await prisma.address.create({
       data: {
-        address,
+        address: address.toLowerCase(),
       },
     });
     if (result == null) {
