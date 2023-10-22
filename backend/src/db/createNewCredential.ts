@@ -7,22 +7,40 @@ export const createNewCredential = async ({
   issuedDate,
   addressId,
   daoId,
+  previousClaimId,
+  previousCredentialId,
 }: {
   claimId: string;
-  validTill: string;
-  issuedDate: string;
+  validTill: Date;
+  issuedDate: Date;
   addressId: string;
   daoId: string;
+  previousClaimId: string | undefined;
+  previousCredentialId: string | undefined;
 }) => {
   try {
+    const data =
+      previousCredentialId != undefined && previousClaimId != undefined
+        ? {
+            claimId,
+            validTill,
+            issuedDate,
+            addressId,
+            daoId,
+            revoked: false,
+            previousClaimId,
+            previousCredentialId,
+          }
+        : {
+            claimId,
+            validTill,
+            issuedDate,
+            addressId,
+            daoId,
+            revoked: false,
+          };
     const result = await prisma.polygonIdCredentialIssued.create({
-      data: {
-        claimId,
-        validTill,
-        issuedDate,
-        addressId,
-        daoId,
-      },
+      data: data,
     });
     if (result == null) {
       return responseFn(false, result);
