@@ -26,7 +26,7 @@ export const createNewDao = async ({
     }
     return responseFn(true, result);
   } catch (error: any) {
-    console.error("ERROR - createNewDao - " + error.message);
+    console.error("ERROR - createNewDao- " + error.message);
     return responseFn(false, null);
   }
 };
