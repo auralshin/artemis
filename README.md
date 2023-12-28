@@ -1,8 +1,8 @@
-# ArtemisDAOVoting Smart Contract README
+# ArtemisZkVoting Smart Contract README
 
 ## Overview
 
-The `ArtemisDAOVoting` smart contract is designed for decentralized autonomous organization (DAO) voting. It leverages the Ethereum blockchain and integrates advanced cryptographic techniques like zk-SNARKs for privacy and Merkle proofs for data integrity.
+The `ArtemisZkVoting` smart contract is designed for decentralized autonomous organization (DAO) voting. It leverages the Ethereum blockchain and integrates advanced cryptographic techniques like zk-SNARKs for privacy and Merkle proofs for data integrity.
 
 ### Key Features
 
@@ -35,43 +35,43 @@ yarn install
 
 Deploy the contract by specifying the initial owner's address:
 ```javascript
-ArtemisDAOVoting artemisDAOVoting = new ArtemisDAOVoting(initialOwnerAddress);
+ArtemisZkVoting ArtemisZkVoting = new ArtemisZkVoting(initialOwnerAddress);
 ```
 
 ### Adding a Proposal
 
 The contract owner can add a proposal:
 ```javascript
-artemisDAOVoting.addProposal(description, merkleRoot, duration, quorum, passcodeHash);
+ArtemisZkVoting.addProposal(description, merkleRoot, duration, quorum, passcodeHash);
 ```
 
 ### Voting on a Proposal
 
 Voters can vote on active proposals using zk-SNARKs proofs and Merkle proofs:
 ```javascript
-artemisDAOVoting.voteForProposal(proposalId, support, merkleProof, leaf, proof);
+ArtemisZkVoting.voteForProposal(proposalId, support, merkleProof, leaf, proof);
 ```
 
 ### Ending Voting on a Proposal
 
 A proposal's voting period can be ended, triggering the vote tally:
 ```javascript
-artemisDAOVoting.endVoting(proposalId);
+ArtemisZkVoting.endVoting(proposalId);
 ```
 
 ### Pausing and Resuming Voting
 
 The contract owner can pause and resume voting:
 ```javascript
-artemisDAOVoting.pauseVoting();
-artemisDAOVoting.resumeVoting();
+ArtemisZkVoting.pauseVoting();
+ArtemisZkVoting.resumeVoting();
 ```
 
 ### Transferring Contract Ownership
 
 Ownership can be transferred to a new owner:
 ```javascript
-artemisDAOVoting.transferContractOwnership(newOwnerAddress);
+ArtemisZkVoting.transferContractOwnership(newOwnerAddress);
 ```
 
 ## Testing

@@ -6,9 +6,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 import "./Verifier.sol";
 
-contract ArtemisDAOVoting is Ownable, Groth16Verifier, Pausable {
+contract ArtemisZkVoting is Ownable, Groth16Verifier, Pausable {
     Groth16Verifier public verifier;
-
+    uint256 public constant PROPOSAL_DELAY = 1 days;
     struct Proposal {
         bytes32 merkleRoot;
         string proposalDescription;
@@ -56,8 +56,8 @@ contract ArtemisDAOVoting is Ownable, Groth16Verifier, Pausable {
         proposalCount += 1;
         proposals[proposalCount].merkleRoot = _merkleRoot;
         proposals[proposalCount].proposalDescription = description;
-        proposals[proposalCount].startTime = block.timestamp;
-        proposals[proposalCount].endTime = block.timestamp + duration;
+        proposals[proposalCount].startTime = block.timestamp + PROPOSAL_DELAY;
+        proposals[proposalCount].endTime = block.timestamp + PROPOSAL_DELAY + duration;
         proposals[proposalCount].quorum = _quorum;
         proposals[proposalCount].passcodeHash = passcodeHash;
         emit ProposalAdded(proposalCount, description);

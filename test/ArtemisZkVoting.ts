@@ -3,8 +3,8 @@ import { expect } from "chai";
 import { MerkleTree } from "merkletreejs";
 import keccak256 from "keccak256"; // MerkleTree.js uses keccak256 for Ethereum use-case
 import {
-  ArtemisDAOVoting,
-  ArtemisDAOVoting__factory,
+  ArtemisZkVoting,
+  ArtemisZkVoting__factory,
 } from "../typechain-types";
 import { generateProof, passcodeHash } from "../test-helpers/index";
 
@@ -16,18 +16,18 @@ type Proof = {
   curve: string;
 };
 
-describe("ArtemisDAOVoting", () => {
+describe("ArtemisZkVoting", () => {
   let accounts: any[];
   let ownerAddress: string;
-  let artemisDAOVoting: ArtemisDAOVoting;
+  let ArtemisZkVoting: ArtemisZkVoting;
 
   beforeEach(async () => {
     accounts = await ethers.getSigners();
     ownerAddress = await accounts[0].getAddress();
 
-    // Assuming the deployment script name for your contract is "ArtemisDAOVoting"
-    artemisDAOVoting = await ethers.deployContract(
-      "ArtemisDAOVoting",
+    // Assuming the deployment script name for your contract is "ArtemisZkVoting"
+    ArtemisZkVoting = await ethers.deployContract(
+      "ArtemisZkVoting",
       [ownerAddress],
       accounts[0]
     );
@@ -45,7 +45,7 @@ describe("ArtemisDAOVoting", () => {
         "123456"
       );
       await expect(
-        artemisDAOVoting.connect(accounts[0]).addProposal(
+        ArtemisZkVoting.connect(accounts[0]).addProposal(
           "Test Proposal",
           merkleRoot,
           3600, // Duration: 1 hour
@@ -53,7 +53,7 @@ describe("ArtemisDAOVoting", () => {
           passcode
         )
       )
-        .to.emit(artemisDAOVoting, "ProposalAdded")
+        .to.emit(ArtemisZkVoting, "ProposalAdded")
         .withArgs(1, "Test Proposal");
     });
     it("non-owner should not be able to add a proposal", async () => {
@@ -68,11 +68,11 @@ describe("ArtemisDAOVoting", () => {
         "123456"
       );
       await expect(
-        artemisDAOVoting
+        ArtemisZkVoting
           .connect(accounts[1])
           .addProposal("Invalid Proposal", merkleRoot, 3600, 50, passcode)
       ).to.be.revertedWithCustomError(
-        artemisDAOVoting,
+        ArtemisZkVoting,
         "OwnableUnauthorizedAccount"
       );
     });
@@ -87,7 +87,7 @@ describe("ArtemisDAOVoting", () => {
         "123456"
       );
       await expect(
-        artemisDAOVoting
+        ArtemisZkVoting
           .connect(accounts[0])
           .addProposal("Zero Duration Proposal", merkleRoot, 0, 50, passcode)
       ).to.be.revertedWith("Duration should be greater than zero");
@@ -103,7 +103,7 @@ describe("ArtemisDAOVoting", () => {
         "123456"
       );
       await expect(
-        artemisDAOVoting
+        ArtemisZkVoting
           .connect(accounts[0])
           .addProposal(
             "Invalid Quorum Proposal",
@@ -124,14 +124,14 @@ describe("ArtemisDAOVoting", () => {
         await accounts[0].getAddress(),
         "123456"
       );
-      await artemisDAOVoting
+      await ArtemisZkVoting
         .connect(accounts[0])
         .addProposal("Proposal 1", merkleRoot, 3600, 50, passcode);
-      await artemisDAOVoting
+      await ArtemisZkVoting
         .connect(accounts[0])
         .addProposal("Proposal 2", merkleRoot, 3600, 50, passcode);
 
-      const proposal2 = await artemisDAOVoting.proposals(2);
+      const proposal2 = await ArtemisZkVoting.proposals(2);
       expect(proposal2.proposalDescription).to.equal("Proposal 2");
     });
   });
@@ -156,7 +156,7 @@ describe("ArtemisDAOVoting", () => {
         await accounts[0].getAddress(),
         "123456"
       );
-      await artemisDAOVoting.connect(accounts[0]).addProposal(
+      await ArtemisZkVoting.connect(accounts[0]).addProposal(
         "Test Proposal",
         merkleRoot,
         3600, // Duration: 1 hour
@@ -183,7 +183,7 @@ describe("ArtemisDAOVoting", () => {
         await accounts[1].getAddress()
       );
       await expect(
-        artemisDAOVoting.connect(accounts[1]).voteForProposal(
+        ArtemisZkVoting.connect(accounts[1]).voteForProposal(
           1, // Proposal ID
           true, // Support the proposal
           proof,
@@ -191,7 +191,7 @@ describe("ArtemisDAOVoting", () => {
           zkProof
         )
       )
-        .to.emit(artemisDAOVoting, "VoteReceived")
+        .to.emit(ArtemisZkVoting, "VoteReceived")
         .withArgs(1, true);
     });
 
@@ -215,7 +215,7 @@ describe("ArtemisDAOVoting", () => {
         await accounts[1].getAddress()
       );
       await expect(
-        artemisDAOVoting
+        ArtemisZkVoting
           .connect(accounts[1])
           .voteForProposal(9999, true, proof, leaf, zkProof)
       ).to.be.revertedWith("Invalid proposal.");
@@ -241,10 +241,10 @@ describe("ArtemisDAOVoting", () => {
         await accounts[1].getAddress()
       );
       await expect(
-        artemisDAOVoting
+        ArtemisZkVoting
           .connect(accounts[1])
           .voteForProposal(1, true, proof, leaf, zkProof)
-      ).to.be.revertedWithCustomError(artemisDAOVoting, "InvalidMerkleProof");
+      ).to.be.revertedWithCustomError(ArtemisZkVoting, "InvalidMerkleProof");
     });
 
     it("should not allow voting on an already ended proposal (hasEnded)", async () => {
@@ -264,7 +264,7 @@ describe("ArtemisDAOVoting", () => {
         await accounts[0].getAddress(),
         "123456"
       );
-      await artemisDAOVoting.connect(accounts[0]).addProposal(
+      await ArtemisZkVoting.connect(accounts[0]).addProposal(
         "Test Proposal Time",
         merkleRoot,
         1, // Duration: 1 second just for the test
@@ -273,14 +273,14 @@ describe("ArtemisDAOVoting", () => {
       );
       // Increase time by 4 seconds using Hardhat's functionality
       await new Promise((resolve) => setTimeout(resolve, 4000));
-      await artemisDAOVoting.connect(accounts[0]).endVoting(2);
-      const currentProposal = await artemisDAOVoting
+      await ArtemisZkVoting.connect(accounts[0]).endVoting(2);
+      const currentProposal = await ArtemisZkVoting
         .connect(accounts[1])
         .proposals(2);
       expect(currentProposal.hasEnded).to.equal(true);
       const proof = tree.getHexProof(leaf);
       // await expect(
-      //   artemisDAOVoting
+      //   ArtemisZkVoting
       //     .connect(accounts[1])
       //     .voteForProposal(1, true, proof, leaf)
       // ).to.be.revertedWith("Voting has ended for this proposal.");
@@ -304,7 +304,7 @@ describe("ArtemisDAOVoting", () => {
         await accounts[0].getAddress(),
         "123456"
       );
-      await artemisDAOVoting.connect(accounts[0]).addProposal(
+      await ArtemisZkVoting.connect(accounts[0]).addProposal(
         "Test Proposal Time",
         merkleRoot,
         1, // Duration: 1 second just for the test
@@ -321,10 +321,10 @@ describe("ArtemisDAOVoting", () => {
         await accounts[1].getAddress()
       );
       await expect(
-        artemisDAOVoting
+        ArtemisZkVoting
           .connect(accounts[1])
           .voteForProposal(2, true, proof, leaf, zkProof)
-      ).to.be.revertedWithCustomError(artemisDAOVoting, "VotingEnded");
+      ).to.be.revertedWithCustomError(ArtemisZkVoting, "VotingEnded");
     });
 
     it("should not allow voting twice on the same proposal", async () => {
@@ -345,11 +345,11 @@ describe("ArtemisDAOVoting", () => {
         "123456",
         await accounts[1].getAddress()
       );
-      await artemisDAOVoting
+      await ArtemisZkVoting
         .connect(accounts[1])
         .voteForProposal(1, true, proof, leaf, zkProof);
       await expect(
-        artemisDAOVoting
+        ArtemisZkVoting
           .connect(accounts[1])
           .voteForProposal(1, true, proof, leaf, zkProof)
       ).to.be.revertedWith("Already voted.");
@@ -371,7 +371,7 @@ describe("ArtemisDAOVoting", () => {
         await accounts[0].getAddress(),
         "123456"
       );
-      await artemisDAOVoting.connect(accounts[0]).addProposal(
+      await ArtemisZkVoting.connect(accounts[0]).addProposal(
         "Test Proposal",
         merkleRoot,
         2, // Duration: 2 seconds just for the test
@@ -383,8 +383,8 @@ describe("ArtemisDAOVoting", () => {
       await new Promise((resolve) => setTimeout(resolve, 4000));
 
       await expect(
-        artemisDAOVoting.connect(accounts[0]).endVoting(1) // Proposal ID
-      ).to.emit(artemisDAOVoting, "ProposalEnded");
+        ArtemisZkVoting.connect(accounts[0]).endVoting(1) // Proposal ID
+      ).to.emit(ArtemisZkVoting, "ProposalEnded");
     });
   });
   describe("Ownership", () => {
@@ -404,18 +404,18 @@ describe("ArtemisDAOVoting", () => {
         "123456"
       );
       await expect(
-        artemisDAOVoting
+        ArtemisZkVoting
           .connect(accounts[1])
           .addProposal("Invalid Proposal", merkleRoot, 3600, 50, passcode)
       ).to.be.revertedWithCustomError(
-        artemisDAOVoting,
+        ArtemisZkVoting,
         "OwnableUnauthorizedAccount"
       );
     });
     it("should allow ownership transfer and validate new owner privileges", async () => {
       const newOwnerAddress = await accounts[1].getAddress();
-      await artemisDAOVoting.transferContractOwnership(newOwnerAddress);
-      const newOwner = await artemisDAOVoting.owner();
+      await ArtemisZkVoting.transferContractOwnership(newOwnerAddress);
+      const newOwner = await ArtemisZkVoting.owner();
       expect(newOwner).to.equal(newOwnerAddress);
 
       const leavesNotHashed = [
@@ -432,10 +432,10 @@ describe("ArtemisDAOVoting", () => {
         "123456"
       );
       await expect(
-        artemisDAOVoting
+        ArtemisZkVoting
           .connect(accounts[1])
           .addProposal("Proposal by New Owner", merkleRoot, 3600, 50, passcode)
-      ).to.emit(artemisDAOVoting, "ProposalAdded");
+      ).to.emit(ArtemisZkVoting, "ProposalAdded");
     });
   });
 });
