@@ -2,10 +2,7 @@ import { ethers, network } from "hardhat";
 import { expect } from "chai";
 import { MerkleTree } from "merkletreejs";
 import keccak256 from "keccak256"; // MerkleTree.js uses keccak256 for Ethereum use-case
-import {
-  ArtemisZkVoting,
-  ArtemisZkVoting__factory,
-} from "../typechain-types";
+import { ArtemisZkVoting, ArtemisZkVoting__factory } from "../typechain-types";
 import { generateProof, passcodeHash } from "../test-helpers/index";
 
 type Proof = {
@@ -68,9 +65,13 @@ describe("ArtemisZkVoting", () => {
         "123456"
       );
       await expect(
-        ArtemisZkVoting
-          .connect(accounts[1])
-          .addProposal("Invalid Proposal", merkleRoot, 3600, 50, passcode)
+        ArtemisZkVoting.connect(accounts[1]).addProposal(
+          "Invalid Proposal",
+          merkleRoot,
+          3600,
+          50,
+          passcode
+        )
       ).to.be.revertedWithCustomError(
         ArtemisZkVoting,
         "OwnableUnauthorizedAccount"
@@ -87,9 +88,13 @@ describe("ArtemisZkVoting", () => {
         "123456"
       );
       await expect(
-        ArtemisZkVoting
-          .connect(accounts[0])
-          .addProposal("Zero Duration Proposal", merkleRoot, 0, 50, passcode)
+        ArtemisZkVoting.connect(accounts[0]).addProposal(
+          "Zero Duration Proposal",
+          merkleRoot,
+          0,
+          50,
+          passcode
+        )
       ).to.be.revertedWith("Duration should be greater than zero");
     });
     it("should revert when adding a proposal with a quorum over 100%", async () => {
@@ -103,15 +108,13 @@ describe("ArtemisZkVoting", () => {
         "123456"
       );
       await expect(
-        ArtemisZkVoting
-          .connect(accounts[0])
-          .addProposal(
-            "Invalid Quorum Proposal",
-            merkleRoot,
-            3600,
-            110,
-            passcode
-          )
+        ArtemisZkVoting.connect(accounts[0]).addProposal(
+          "Invalid Quorum Proposal",
+          merkleRoot,
+          3600,
+          110,
+          passcode
+        )
       ).to.be.revertedWith("Quorum should be between 0 and 100");
     });
     it("should add multiple proposals and increment IDs", async () => {
@@ -124,12 +127,20 @@ describe("ArtemisZkVoting", () => {
         await accounts[0].getAddress(),
         "123456"
       );
-      await ArtemisZkVoting
-        .connect(accounts[0])
-        .addProposal("Proposal 1", merkleRoot, 3600, 50, passcode);
-      await ArtemisZkVoting
-        .connect(accounts[0])
-        .addProposal("Proposal 2", merkleRoot, 3600, 50, passcode);
+      await ArtemisZkVoting.connect(accounts[0]).addProposal(
+        "Proposal 1",
+        merkleRoot,
+        3600,
+        50,
+        passcode
+      );
+      await ArtemisZkVoting.connect(accounts[0]).addProposal(
+        "Proposal 2",
+        merkleRoot,
+        3600,
+        50,
+        passcode
+      );
 
       const proposal2 = await ArtemisZkVoting.proposals(2);
       expect(proposal2.proposalDescription).to.equal("Proposal 2");
@@ -182,6 +193,8 @@ describe("ArtemisZkVoting", () => {
         "123456",
         await accounts[1].getAddress()
       );
+      await network.provider.send("evm_increaseTime", [86400]);
+      await network.provider.send("evm_mine");
       await expect(
         ArtemisZkVoting.connect(accounts[1]).voteForProposal(
           1, // Proposal ID
@@ -214,10 +227,16 @@ describe("ArtemisZkVoting", () => {
         "123456",
         await accounts[1].getAddress()
       );
+      await network.provider.send("evm_increaseTime", [86400]);
+      await network.provider.send("evm_mine");
       await expect(
-        ArtemisZkVoting
-          .connect(accounts[1])
-          .voteForProposal(9999, true, proof, leaf, zkProof)
+        ArtemisZkVoting.connect(accounts[1]).voteForProposal(
+          9999,
+          true,
+          proof,
+          leaf,
+          zkProof
+        )
       ).to.be.revertedWith("Invalid proposal.");
     });
 
@@ -240,10 +259,16 @@ describe("ArtemisZkVoting", () => {
         "123456",
         await accounts[1].getAddress()
       );
+      await network.provider.send("evm_increaseTime", [86400]);
+      await network.provider.send("evm_mine");
       await expect(
-        ArtemisZkVoting
-          .connect(accounts[1])
-          .voteForProposal(1, true, proof, leaf, zkProof)
+        ArtemisZkVoting.connect(accounts[1]).voteForProposal(
+          1,
+          true,
+          proof,
+          leaf,
+          zkProof
+        )
       ).to.be.revertedWithCustomError(ArtemisZkVoting, "InvalidMerkleProof");
     });
 
@@ -272,18 +297,25 @@ describe("ArtemisZkVoting", () => {
         passcode
       );
       // Increase time by 4 seconds using Hardhat's functionality
-      await new Promise((resolve) => setTimeout(resolve, 4000));
+      await network.provider.send("evm_increaseTime", [86404]);
+      await network.provider.send("evm_mine");
+      // await new Promise((resolve) => setTimeout(resolve, 4000));
       await ArtemisZkVoting.connect(accounts[0]).endVoting(2);
-      const currentProposal = await ArtemisZkVoting
-        .connect(accounts[1])
-        .proposals(2);
+      const currentProposal = await ArtemisZkVoting.connect(
+        accounts[1]
+      ).proposals(2);
       expect(currentProposal.hasEnded).to.equal(true);
       const proof = tree.getHexProof(leaf);
-      // await expect(
-      //   ArtemisZkVoting
-      //     .connect(accounts[1])
-      //     .voteForProposal(1, true, proof, leaf)
-      // ).to.be.revertedWith("Voting has ended for this proposal.");
+      zkProof = await generateProof(
+        await accounts[0].getAddress(),
+        "123456",
+        await accounts[1].getAddress()
+      );
+      await expect(
+        ArtemisZkVoting
+          .connect(accounts[1])
+          .voteForProposal(2, true, proof, leaf, zkProof)
+      ).to.be.revertedWith("Voting has ended for this proposal.");
       // Will recheck this later
     });
 
@@ -312,7 +344,9 @@ describe("ArtemisZkVoting", () => {
         passcode
       );
 
-      await new Promise((resolve) => setTimeout(resolve, 4000));
+      // await new Promise((resolve) => setTimeout(resolve, 4000));
+      await network.provider.send("evm_increaseTime", [86404]);
+      await network.provider.send("evm_mine");
 
       const proof = tree.getHexProof(leaf);
       zkProof = await generateProof(
@@ -321,9 +355,13 @@ describe("ArtemisZkVoting", () => {
         await accounts[1].getAddress()
       );
       await expect(
-        ArtemisZkVoting
-          .connect(accounts[1])
-          .voteForProposal(2, true, proof, leaf, zkProof)
+        ArtemisZkVoting.connect(accounts[1]).voteForProposal(
+          2,
+          true,
+          proof,
+          leaf,
+          zkProof
+        )
       ).to.be.revertedWithCustomError(ArtemisZkVoting, "VotingEnded");
     });
 
@@ -345,13 +383,23 @@ describe("ArtemisZkVoting", () => {
         "123456",
         await accounts[1].getAddress()
       );
-      await ArtemisZkVoting
-        .connect(accounts[1])
-        .voteForProposal(1, true, proof, leaf, zkProof);
+      await network.provider.send("evm_increaseTime", [86400]);
+      await network.provider.send("evm_mine");
+      await ArtemisZkVoting.connect(accounts[1]).voteForProposal(
+        1,
+        true,
+        proof,
+        leaf,
+        zkProof
+      );
       await expect(
-        ArtemisZkVoting
-          .connect(accounts[1])
-          .voteForProposal(1, true, proof, leaf, zkProof)
+        ArtemisZkVoting.connect(accounts[1]).voteForProposal(
+          1,
+          true,
+          proof,
+          leaf,
+          zkProof
+        )
       ).to.be.revertedWith("Already voted.");
     });
   });
@@ -378,6 +426,8 @@ describe("ArtemisZkVoting", () => {
         50,
         passcode
       );
+      await network.provider.send("evm_increaseTime", [86400]);
+      await network.provider.send("evm_mine");
 
       // Wait for 3 seconds to ensure the proposal duration is over
       await new Promise((resolve) => setTimeout(resolve, 4000));
@@ -404,9 +454,13 @@ describe("ArtemisZkVoting", () => {
         "123456"
       );
       await expect(
-        ArtemisZkVoting
-          .connect(accounts[1])
-          .addProposal("Invalid Proposal", merkleRoot, 3600, 50, passcode)
+        ArtemisZkVoting.connect(accounts[1]).addProposal(
+          "Invalid Proposal",
+          merkleRoot,
+          3600,
+          50,
+          passcode
+        )
       ).to.be.revertedWithCustomError(
         ArtemisZkVoting,
         "OwnableUnauthorizedAccount"
@@ -432,9 +486,13 @@ describe("ArtemisZkVoting", () => {
         "123456"
       );
       await expect(
-        ArtemisZkVoting
-          .connect(accounts[1])
-          .addProposal("Proposal by New Owner", merkleRoot, 3600, 50, passcode)
+        ArtemisZkVoting.connect(accounts[1]).addProposal(
+          "Proposal by New Owner",
+          merkleRoot,
+          3600,
+          50,
+          passcode
+        )
       ).to.emit(ArtemisZkVoting, "ProposalAdded");
     });
   });
