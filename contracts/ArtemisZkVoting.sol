@@ -51,6 +51,8 @@ contract ArtemisDAOVoting is Ownable, Groth16Verifier, Pausable {
         uint256 _quorum,
         uint256 passcodeHash
     ) external onlyOwner {
+        require(duration > 0, "Duration should be greater than zero");
+        require(_quorum <= 100, "Quorum should be between 0 and 100");
         proposalCount += 1;
         proposals[proposalCount].merkleRoot = _merkleRoot;
         proposals[proposalCount].proposalDescription = description;
@@ -75,7 +77,10 @@ contract ArtemisDAOVoting is Ownable, Groth16Verifier, Pausable {
             block.timestamp >= proposal.startTime,
             "Voting not yet started."
         );
-        require(block.timestamp <= proposal.endTime, "Voting time has ended.");
+        // require(block.timestamp <= proposal.endTime, "Voting time has ended.");
+        if (block.timestamp > proposal.endTime) {
+            revert VotingEnded();
+        }
         require(!proposal.voted[leaf], "Already voted.");
 
         require(proof.length == 8, "Invalid proof");
@@ -103,17 +108,17 @@ contract ArtemisDAOVoting is Ownable, Groth16Verifier, Pausable {
             block.timestamp > proposal.endTime,
             "Voting period is not yet over."
         );
-        require(
-            !proposal.hasEnded,
-            "Voting has already ended for this proposal."
-        );
+        if (proposal.hasEnded) {
+            revert VotingEnded();
+        }
 
         proposal.hasEnded = true;
 
         uint256 totalVotes = proposal.votes[true] + proposal.votes[false];
-        bool achievedQuorum = (totalVotes * 100) /
-            (proposal.votes[true] + proposal.votes[false] + totalVotes) >=
-            proposal.quorum;
+        bool achievedQuorum = false;
+        if (totalVotes > 0) {
+            achievedQuorum = (totalVotes * 100) / totalVotes >= proposal.quorum;
+        }
         bool isSupported = proposal.votes[true] > proposal.votes[false];
 
         emit ProposalEnded(proposalId, achievedQuorum, isSupported);

@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/auralshin/Projects/artemis/contracts/ArtemisZkVoting.sol": {
-      "lastModificationDate": 1703757401097,
-      "contentHash": "1309a696c79c32388c6eaaf041032982",
+      "lastModificationDate": 1703758437353,
+      "contentHash": "fd88fcc6a49fba36e5de3c862ca50b23",
       "sourceName": "contracts/ArtemisZkVoting.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -78,10 +78,10 @@
         "Groth16Verifier"
       ]
     },
-    "/Users/auralshin/Projects/artemis/node_modules/@openzeppelin/contracts/access/Ownable.sol": {
-      "lastModificationDate": 1703757406240,
-      "contentHash": "d3c790edc9ccf808a17c5a6cd13614fd",
-      "sourceName": "@openzeppelin/contracts/access/Ownable.sol",
+    "/Users/auralshin/Projects/artemis/node_modules/@openzeppelin/contracts/utils/cryptography/MerkleProof.sol": {
+      "lastModificationDate": 1703757406247,
+      "contentHash": "aa87c17aff0d584703d5d046b9979f1d",
+      "sourceName": "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol",
       "solcConfig": {
         "version": "0.8.20",
         "settings": {
@@ -106,14 +106,12 @@
           }
         }
       },
-      "imports": [
-        "../utils/Context.sol"
-      ],
+      "imports": [],
       "versionPragmas": [
         "^0.8.20"
       ],
       "artifacts": [
-        "Ownable"
+        "MerkleProof"
       ]
     },
     "/Users/auralshin/Projects/artemis/node_modules/@openzeppelin/contracts/utils/Pausable.sol": {
@@ -154,10 +152,10 @@
         "Pausable"
       ]
     },
-    "/Users/auralshin/Projects/artemis/node_modules/@openzeppelin/contracts/utils/cryptography/MerkleProof.sol": {
-      "lastModificationDate": 1703757406247,
-      "contentHash": "aa87c17aff0d584703d5d046b9979f1d",
-      "sourceName": "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol",
+    "/Users/auralshin/Projects/artemis/node_modules/@openzeppelin/contracts/access/Ownable.sol": {
+      "lastModificationDate": 1703757406240,
+      "contentHash": "d3c790edc9ccf808a17c5a6cd13614fd",
+      "sourceName": "@openzeppelin/contracts/access/Ownable.sol",
       "solcConfig": {
         "version": "0.8.20",
         "settings": {
@@ -182,12 +180,14 @@
           }
         }
       },
-      "imports": [],
+      "imports": [
+        "../utils/Context.sol"
+      ],
       "versionPragmas": [
         "^0.8.20"
       ],
       "artifacts": [
-        "MerkleProof"
+        "Ownable"
       ]
     },
     "/Users/auralshin/Projects/artemis/node_modules/@openzeppelin/contracts/utils/Context.sol": {
