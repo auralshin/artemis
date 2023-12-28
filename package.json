@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "scripts": {
     "compile": "hardhat compile",
-    "test": "hardhat test"
+    "test": "hardhat test",
+    "test:coverage": "hardhat coverage",
+    "test:gas": "REPORT_GAS=true npx hardhat test",
+    "test:parallel": "hardhat test --parallel"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.3",
