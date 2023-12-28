@@ -1,6 +1,7 @@
 import ethers from "ethers";
 const fs = require("fs");
 const snarkjs = require("snarkjs");
+const path = require("path");
 import keccak256 from "keccak256";
 
 function hashString(str: string) {
@@ -9,13 +10,18 @@ function hashString(str: string) {
 }
 
 async function prove(addrBN: BigInt, secretBN: BigInt) {
+  // const wasmPath = "/Users/auralshin/Projects/artemis/circuits/artemis_js/artemis.wasm";
+  // const zkeyPath = "/Users/auralshin/Projects/artemis/circuits/artemis_js/artemis_0001.zkey";
+
+  const wasmPath = path.join(__dirname, "../circuits/artemis_js/artemis.wasm");
+  const zkeyPath = path.join(__dirname, "../circuits/artemis_js/artemis_0001.zkey");
   return await snarkjs.groth16.fullProve(
     {
       addr: addrBN.toString(),
       secret: secretBN.toString(),
     },
-    "/Users/auralshin/Projects/artemis/circuits/artemis_js/artemis.wasm",
-    "/Users/auralshin/Projects/artemis/circuits/artemis_js/artemis_0001.zkey"
+    wasmPath,
+    zkeyPath
   );
 }
 
